@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopkeeper Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Registration Page -->
+    <section id="register" class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 {% if not show_register %}hidden{% endif %}">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Register as Shopkeeper</h2>
+            <p class="text-center text-gray-600 mb-4">A verification email will be sent after registration.</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for category, message in messages %}
+                            <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <form id="registerForm" action="/register" method="POST">
+                {% if form %}{{ form.hidden_tag() }}{% endif %} <!-- CSRF token for registration -->
+                <div class="mb-4">
+                    <label for="first_name" class="block text-gray-700">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="last_name" class="block text-gray-700">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700">Username</label>
+                    <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="mobile" class="block text-gray-700">Mobile Number</label>
+                    <input type="tel" id="mobile" name="mobile" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+1234567890">
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Password</label>
+                    <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700">Take Photo</label>
+                    <video id="video" class="w-full h-48 bg-black rounded-lg" autoplay></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    <input type="hidden" id="photo" name="photo">
+                    <button type="button" id="capture" class="mt-2 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300">Capture Photo</button>
+                    <div id="preview" class="mt-2 hidden">
+                        <p class="text-gray-700">Captured Photo:</p>
+                        <img id="photoPreview" class="w-full h-48 object-cover rounded-lg" alt="Captured Photo">
+                    </div>
+                    <p id="error" class="text-red-500 mt-2 hidden"></p>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">Register</button>
+            </form>
+            <p class="mt-4 text-center text-gray-600">Already have an account? <a href="/login" class="text-blue-500 hover:underline">Login</a></p>
+        </div>
+    </section>
+
+    <!-- Login Page -->
+    <section id="login" class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 {% if show_register %}hidden{% endif %}">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login to Your Account</h2>
+            <p class="text-center text-gray-600 mb-4">Please verify your email before logging in.</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for category, message in messages %}
+                            <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <form id="loginForm" action="/login" method="POST">
+                {% if login_form %}{{ login_form.hidden_tag() }}{% endif %} <!-- CSRF token for login -->
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700">Username</label>
+                    <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Password</label>
+                    <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">Login</button>
+            </form>
+            <p class="mt-4 text-center text-gray-600">Don't have an account? <a href="/register" class="text-blue-500 hover:underline">Register</a></p>
+        </div>
+    </section>
+
+    <script>
+        // Initialize webcam
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const photoInput = document.getElementById('photo');
+        const preview = document.getElementById('preview');
+        const photoPreview = document.getElementById('photoPreview');
+        const error = document.getElementById('error');
+
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                error.classList.remove('hidden');
+                error.textContent = 'Error accessing webcam: ' + err.message;
+                if (err.name === 'NotAllowedError') {
+                    error.textContent += ' Please allow webcam access.';
+                } else if (err.name === 'NotFoundError') {
+                    error.textContent += ' No webcam found.';
+                }
+            }
+        }
+
+        // Capture photo
+        captureButton.addEventListener('click', () => {
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/png');
+                photoInput.value = dataUrl;
+                photoPreview.src = dataUrl;
+                preview.classList.remove('hidden');
+                error.classList.add('hidden');
+            } catch (err) {
+                error.classList.remove('hidden');
+                error.textContent = 'Error capturing photo: ' + err.message;
+            }
+        });
+
+        // Form validation for registration
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const mobile = document.getElementById('mobile').value;
+            const photo = document.getElementById('photo').value;
+            const firstName = document.getElementById('first_name').value;
+            const lastName = document.getElementById('last_name').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const mobileRegex = /^\+?\d{10,15}$/;
+
+            if (!firstName) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'First name is required.';
+                return;
+            }
+            if (!lastName) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'Last name is required.';
+                return;
+            }
+            if (password.length < 6) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'Password must be at least 6 characters long.';
+                return;
+            }
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'Please enter a valid email address.';
+                return;
+            }
+            if (mobile && !mobileRegex.test(mobile)) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'Please enter a valid mobile number (10-15 digits, optional +).';
+                return;
+            }
+            if (!photo) {
+                e.preventDefault();
+                error.classList.remove('hidden');
+                error.textContent = 'Please capture a photo.';
+                return;
+            }
+        });
+
+        // Toggle between login and register pages
+        document.querySelectorAll('a[href="/login"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('register').classList.add('hidden');
+                document.getElementById('login').classList.remove('hidden');
+            });
+        });
+        document.querySelectorAll('a[href="/register"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('register').classList.remove('hidden');
+            });
+        });
+
+        // Start webcam on page load
+        window.onload = startWebcam;
+    </script>
+</body>
+</html>

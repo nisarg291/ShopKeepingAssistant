@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Voice Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Confirm Voice Inventory</h1>
+            <div>
+                <a href="{{ url_for('update_inventory') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-300 mr-2">Back to Update Inventory</a>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition duration-300">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Confirm Inventory Items</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if items %}
+            <p class="text-gray-600 mb-4">Please review the items below before adding to inventory.</p>
+            <form action="{{ url_for('confirm_voice_inventory') }}" method="POST">
+                {{ confirm_form.hidden_tag() }}
+                {{ confirm_form.items }}
+                <table class="w-full border-collapse mb-4">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2 text-left">Item Name</th>
+                            <th class="border p-2 text-left">Quantity</th>
+                            <th class="border p-2 text-left">Price ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td class="border p-2">{{ item.item_name }}</td>
+                                <td class="border p-2">{{ item.quantity }}</td>
+                                <td class="border p-2">{{ item.price | round(2) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300">Confirm and Add to Inventory</button>
+            </form>
+        {% else %}
+            <p class="text-gray-600">No items to confirm. Please use voice input again.</p>
+            <a href="{{ url_for('update_inventory') }}" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">Back to Update Inventory</a>
+        {% endif %}
+    </main>
+</body>
+</html>

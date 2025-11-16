@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopkeeper Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Shopkeeper Assistant Dashboard</h1>
+            <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition duration-300">Logout</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome, Shopkeeper!</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Menu Buttons -->
+        <div class="flex space-x-4 mb-8">
+            <a href="{{ url_for('update_inventory') }}" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">Update Inventory</a>
+            <button onclick="showSection('take-order')" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Take Order</button>
+            <button onclick="showSection('current-inventory')" class="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300">See Current Inventory</button>
+        </div>
+
+        <!-- Take Order Section -->
+        <section id="take-order" class="mb-8 hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Take Order</h3>
+            <form action="{{ url_for('dashboard') }}" method="POST">
+                {{ order_form.hidden_tag() }}
+                <input type="hidden" name="order_form" value="true">
+                <div class="mb-4">
+                    <label for="item_id" class="block text-gray-700">Select Item</label>
+                    <select id="item_id" name="item_id" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        {% for item_id, item_name in order_form.item_id.choices %}
+                            <option value="{{ item_id }}">{{ item_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="quantity" class="block text-gray-700">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="1" required>
+                </div>
+                <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300">Place Order</button>
+            </form>
+        </section>
+
+        <!-- Current Inventory Section -->
+        <section id="current-inventory" class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Current Inventory</h3>
+            {% if inventory %}
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2 text-left">Item Name</th>
+                            <th class="border p-2 text-left">Quantity</th>
+                            <th class="border p-2 text-left">Price ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory %}
+                            <tr>
+                                <td class="border p-2">{{ item[0] }}</td>
+                                <td class="border p-2">{{ item[1] }}</td>
+                                <td class="border p-2">{{ item[2] | round(2) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-gray-600">No inventory items found. Add items using the Update Inventory option.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // Show current inventory by default
+        showSection('current-inventory');
+    </script>
+</body>
+</html>

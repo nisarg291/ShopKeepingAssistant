@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Inventory Item</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Edit Inventory Item</h1>
+            <div>
+                <a href="{{ url_for('update_inventory') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-300 mr-2">Back to Update Inventory</a>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition duration-300">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Edit {{ item_name }}</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('edit_inventory_item', item_id=item_id) }}" method="POST">
+            {{ edit_form.hidden_tag() }}
+            <div class="mb-4">
+                <label for="item_name" class="block text-gray-700">Item Name</label>
+                <input type="text" id="item_name" name="item_name" value="{{ edit_form.item_name.data }}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="mb-4">
+                <label for="quantity" class="block text-gray-700">Quantity</label>
+                <input type="number" id="quantity" name="quantity" value="{{ edit_form.quantity.data }}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required>
+            </div>
+            <div class="mb-4">
+                <label for="price" class="block text-gray-700">Price ($)</label>
+                <input type="number" id="price" name="price" value="{{ edit_form.price.data }}" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0.01" required>
+            </div>
+            <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition duration-300">Save Changes</button>
+        </form>
+    </main>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Update Inventory</h1>
+            <div>
+                <a href="{{ url_for('dashboard') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-300 mr-2">Back to Dashboard</a>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition duration-300">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Update Your Inventory</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <p class="text-{{ 'red' if category == 'error' else 'green' }}-500 text-center">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="flex space-x-4 mb-8">
+            <button onclick="showSection('manual-entry')" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">Manual Entry</button>
+            <button onclick="showSection('file-upload')" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">Upload File</button>
+            <button onclick="showSection('voice-input')" class="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300">Voice Input</button>
+            <button onclick="showSection('edit-inventory')" class="bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300">Edit Inventory</button>
+        </div>
+
+        <section id="manual-entry" class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Manual Entry</h3>
+            <form action="{{ url_for('update_inventory') }}" method="POST">
+                {{ manual_form.hidden_tag() }}
+                <input type="hidden" name="manual_form" value="true">
+                <div class="mb-4">
+                    <label for="item_name" class="block text-gray-700">Item Name</label>
+                    <input type="text" id="item_name" name="item_name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="quantity" class="block text-gray-700">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required>
+                </div>
+                <div class="mb-4">
+                    <label for="price" class="block text-gray-700">Price ($)</label>
+                    <input type="number" id="price" name="price" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0.01" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">Add to Inventory</button>
+            </form>
+        </section>
+
+        <section id="file-upload" class="mb-8 hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Upload PDF/Word File</h3>
+            <p class="text-gray-600 mb-4">Upload a PDF or Word (.docx) file with inventory data in the format: "Item: <name>, Quantity: <number>, Price: <number>" (one item per line).</p>
+            <form action="{{ url_for('update_inventory') }}" method="POST" enctype="multipart/form-data">
+                {{ file_form.hidden_tag() }}
+                <input type="hidden" name="file_form" value="true">
+                <div class="mb-4">
+                    <label for="file" class="block text-gray-700">Select File</label>
+                    <input type="file" id="file" name="file" accept=".pdf,.docx" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-300">Upload and Process</button>
+            </form>
+        </section>
+
+        <section id="voice-input" class="mb-8 hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Voice Input</h3>
+            <p class="text-gray-600 mb-4">Speak in the format: "Add <quantity> <item name> at <price> dollars" for each item, separating items with "and" or ";". Example: "Add 10 laptops at 999.99 dollars and 20 phones at 499.99 dollars; 15 tablets at 299.99 dollars".</p>
+            <div class="mb-4">
+                <button type="button" id="start-voice" class="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300">Start Recording</button>
+                <button type="button" id="stop-voice" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 hidden">Stop Recording</button>
+            </div>
+            <p id="voice-status" class="text-gray-600 mb-4">Click "Start Recording" to begin.</p>
+            <form action="{{ url_for('update_inventory') }}" method="POST" id="voice-form">
+                {{ voice_form.hidden_tag() }}
+                <input type="hidden" name="voice_form" value="true">
+                <div class="mb-4">
+                    <label for="transcript" class="block text-gray-700">Recognized Text</label>
+                    <textarea id="transcript" name="transcript" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" readonly></textarea>
+                </div>
+                <button type="submit" class="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition duration-300">Process Voice Input</button>
+            </form>
+        </section>
+
+        <section id="edit-inventory" class="mb-8 hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Edit Inventory</h3>
+            {% if inventory_items %}
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2 text-left">Item Name</th>
+                            <th class="border p-2 text-left">Quantity</th>
+                            <th class="border p-2 text-left">Price ($)</th>
+                            <th class="border p-2 text-left">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                            <tr>
+                                <td class="border p-2">{{ item[1] }}</td>
+                                <td class="border p-2">{{ item[2] }}</td>
+                                <td class="border p-2">{{ item[3] | round(2) }}</td>
+                                <td class="border p-2">
+                                    <a href="{{ url_for('edit_inventory_item', item_id=item[0]) }}" class="bg-orange-500 text-white py-1 px-2 rounded-lg hover:bg-orange-600 transition duration-300">Edit</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-gray-600">No inventory items found. Add items using other options.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        showSection('manual-entry');
+
+        const startVoice = document.getElementById('start-voice');
+        const stopVoice = document.getElementById('stop-voice');
+        const voiceStatus = document.getElementById('voice-status');
+        const transcriptField = document.getElementById('transcript');
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            startVoice.addEventListener('click', () => {
+                recognition.start();
+                voiceStatus.textContent = 'Recording... Speak clearly.';
+                startVoice.classList.add('hidden');
+                stopVoice.classList.remove('hidden');
+                transcriptField.value = '';
+            });
+
+            stopVoice.addEventListener('click', () => {
+                recognition.stop();
+                voiceStatus.textContent = 'Processing...';
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                transcriptField.value = transcript;
+                voiceStatus.textContent = `Heard: "${transcript}"`;
+            };
+
+            recognition.onerror = (event) => {
+                voiceStatus.textContent = `Error: ${event.error}. Please try again.`;
+                startVoice.classList.remove('hidden');
+                stopVoice.classList.add('hidden');
+            };
+
+            recognition.onend = () => {
+                startVoice.classList.remove('hidden');
+                stopVoice.classList.add('hidden');
+                if (!transcriptField.value) {
+                    voiceStatus.textContent = 'Recording stopped. Click "Start Recording" to try again.';
+                } else {
+                    voiceStatus.textContent += ' Click "Process Voice Input" to continue.';
+                }
+            };
+        } else {
+            voiceStatus.textContent = 'Speech recognition not supported in this browser. Use manual entry or file upload.';
+            startVoice.disabled = true;
+        }
+    </script>
+</body>
+</html>
